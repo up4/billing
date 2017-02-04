@@ -110,6 +110,7 @@ create_user() {
 			usermod -aG docker $UCRM_USER
 		fi
     fi
+
 	if [ ! -d "$UCRM_ROOT" ]; then
 		echo "Creating directory $UCRM_ROOT."
 		mkdir -p "$UCRM_ROOT"
