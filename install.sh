@@ -2,7 +2,7 @@
 
 # linux user for ucrm docker containers
 UCRM_USER="docker"
-UCRM_ROOT="/home/$UCRM_USER/ucrm"
+UCRM_ROOT="/var/lib/docker/compose/ucrm"
 GITHUB_REPO="up4/billing"
 POSTGRES_PASSWORD=$(cat /dev/urandom | tr -dc "a-zA-Z0-9" | fold -w 48 | head -n 1);
 SECRET=$(cat /dev/urandom | tr -dc "a-zA-Z0-9" | fold -w 48 | head -n 1);
