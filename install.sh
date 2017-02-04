@@ -3,6 +3,7 @@
 # linux user for ucrm docker containers
 UCRM_USER="docker"
 UCRM_ROOT="/home/$UCRM_USER/ucrm"
+GITHUB_REPO="up4/billing"
 POSTGRES_PASSWORD=$(cat /dev/urandom | tr -dc "a-zA-Z0-9" | fold -w 48 | head -n 1);
 SECRET=$(cat /dev/urandom | tr -dc "a-zA-Z0-9" | fold -w 48 | head -n 1);
 if [ -z "$INSTALL_CLOUD" ]; then INSTALL_CLOUD=false; fi
@@ -112,9 +113,9 @@ create_user() {
 download_docker_compose_files() {
 	if [ ! -f $UCRM_ROOT/docker-compose.yml ]; then
 		echo "Downloading docker compose files."
-		curl -o $UCRM_ROOT/docker-compose.yml https://raw.githubusercontent.com/U-CRM/billing/master/docker-compose.yml
-		curl -o $UCRM_ROOT/docker-compose.migrate.yml https://raw.githubusercontent.com/U-CRM/billing/master/docker-compose.migrate.yml
-		curl -o $UCRM_ROOT/docker-compose.env https://raw.githubusercontent.com/U-CRM/billing/master/docker-compose.env
+		curl -o $UCRM_ROOT/docker-compose.yml https://raw.githubusercontent.com/$GITHUB_REPO/master/docker-compose.yml
+		curl -o $UCRM_ROOT/docker-compose.migrate.yml https://raw.githubusercontent.com/$GITHUB_REPO/master/docker-compose.migrate.yml
+		curl -o $UCRM_ROOT/docker-compose.env https://raw.githubusercontent.com/$GITHUB_REPO/master/docker-compose.env
 
 		echo "Replacing env in docker compose."
 		sed -i -e "s/POSTGRES_PASSWORD=ucrmdbpass1/POSTGRES_PASSWORD=$POSTGRES_PASSWORD/g" $UCRM_ROOT/docker-compose.env
