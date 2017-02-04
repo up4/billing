@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # linux user for ucrm docker containers
-UCRM_USER="ucrm"
+UCRM_USER="docker"
+UCRM_ROOT="/home/$UCRM_USER/ucrm"
 POSTGRES_PASSWORD=$(cat /dev/urandom | tr -dc "a-zA-Z0-9" | fold -w 48 | head -n 1);
 SECRET=$(cat /dev/urandom | tr -dc "a-zA-Z0-9" | fold -w 48 | head -n 1);
 if [ -z "$INSTALL_CLOUD" ]; then INSTALL_CLOUD=false; fi
@@ -103,21 +104,21 @@ install_docker_compose() {
 create_user() {
 	if [ -z "$(getent passwd $UCRM_USER)" ]; then
 		echo "Creating user $UCRM_USER."
-		adduser --disabled-password --gecos "" $UCRM_USER
+		adduser --disabled-password --gecos "" $UCRM_ROOT
 		usermod -aG docker $UCRM_USER
 	fi
 }
 
 download_docker_compose_files() {
-	if [ ! -f /home/$UCRM_USER/docker-compose.yml ]; then
+	if [ ! -f $UCRM_ROOT/docker-compose.yml ]; then
 		echo "Downloading docker compose files."
-		curl -o /home/$UCRM_USER/docker-compose.yml https://raw.githubusercontent.com/U-CRM/billing/master/docker-compose.yml
-		curl -o /home/$UCRM_USER/docker-compose.migrate.yml https://raw.githubusercontent.com/U-CRM/billing/master/docker-compose.migrate.yml
-		curl -o /home/$UCRM_USER/docker-compose.env https://raw.githubusercontent.com/U-CRM/billing/master/docker-compose.env
+		curl -o $UCRM_ROOT/docker-compose.yml https://raw.githubusercontent.com/U-CRM/billing/master/docker-compose.yml
+		curl -o $UCRM_ROOT/docker-compose.migrate.yml https://raw.githubusercontent.com/U-CRM/billing/master/docker-compose.migrate.yml
+		curl -o $UCRM_ROOT/docker-compose.env https://raw.githubusercontent.com/U-CRM/billing/master/docker-compose.env
 
 		echo "Replacing env in docker compose."
-		sed -i -e "s/POSTGRES_PASSWORD=ucrmdbpass1/POSTGRES_PASSWORD=$POSTGRES_PASSWORD/g" /home/$UCRM_USER/docker-compose.env
-		sed -i -e "s/SECRET=changeThisSecretKey/SECRET=$SECRET/g" /home/$UCRM_USER/docker-compose.env
+		sed -i -e "s/POSTGRES_PASSWORD=ucrmdbpass1/POSTGRES_PASSWORD=$POSTGRES_PASSWORD/g" $UCRM_ROOT/docker-compose.env
+		sed -i -e "s/SECRET=changeThisSecretKey/SECRET=$SECRET/g" $UCRM_ROOT/docker-compose.env
 
 		change_ucrm_port
 		change_ucrm_suspend_port
@@ -137,16 +138,16 @@ change_ucrm_port() {
 
 		case $PORT in
 			[yY][eE][sS]|[yY])
-				sed -i -e "s/- 8080:80/- 80:80/g" /home/$UCRM_USER/docker-compose.yml
-				sed -i -e "s/- 8443:443/- 443:443/g" /home/$UCRM_USER/docker-compose.yml
+				sed -i -e "s/- 8080:80/- 80:80/g" $UCRM_ROOT/docker-compose.yml
+				sed -i -e "s/- 8443:443/- 443:443/g" $UCRM_ROOT/docker-compose.yml
 				echo "UCRM will start at 80 port."
-				echo "#used only in instalation" >> /home/$UCRM_USER/docker-compose.env
-				echo "SERVER_PORT=80" >> /home/$UCRM_USER/docker-compose.env
+				echo "#used only in instalation" >> $UCRM_ROOT/docker-compose.env
+				echo "SERVER_PORT=80" >> $UCRM_ROOT/docker-compose.env
 				break;;
 			[nN][oO]|[nN])
 				echo "UCRM will start at 8080 port. If you will change it, edit your docker-compose.yml in $UCRM_USER home direcotry."
-				echo "#used only in instalation" >> /home/$UCRM_USER/docker-compose.env
-				echo "SERVER_PORT=8080" >> /home/$UCRM_USER/docker-compose.env
+				echo "#used only in instalation" >> $UCRM_ROOT/docker-compose.env
+				echo "SERVER_PORT=8080" >> $UCRM_ROOT/docker-compose.env
 				break;;
 			*)
 				;;
@@ -166,15 +167,15 @@ change_ucrm_suspend_port() {
 
 		case $PORT in
 			[yY]*)
-				sed -i -e "s/- 8081:81/- 81:81/g" /home/$UCRM_USER/docker-compose.yml
+				sed -i -e "s/- 8081:81/- 81:81/g" $UCRM_ROOT/docker-compose.yml
 				echo "UCRM suspend page will start at 81 port."
-				echo "#used only in instalation" >> /home/$UCRM_USER/docker-compose.env
-				echo "SERVER_SUSPEND_PORT=81" >> /home/$UCRM_USER/docker-compose.env
+				echo "#used only in instalation" >> $UCRM_ROOT/docker-compose.env
+				echo "SERVER_SUSPEND_PORT=81" >> $UCRM_ROOT/docker-compose.env
 				break;;
 			[nN]*)
 				echo "UCRM suspend page will start at 8081 port. If you will change it, edit your docker-compose.yml in $UCRM_USER home direcotry."
-				echo "#used only in instalation" >> /home/$UCRM_USER/docker-compose.env
-				echo "SERVER_SUSPEND_PORT=8081" >> /home/$UCRM_USER/docker-compose.env
+				echo "#used only in instalation" >> $UCRM_ROOT/docker-compose.env
+				echo "SERVER_SUSPEND_PORT=8081" >> $UCRM_ROOT/docker-compose.env
 				break;;
 			*)
 				;;
@@ -211,11 +212,11 @@ enable_server_name() {
 
 	if [ "$INSTALL_CLOUD" = true ]; then
 		if [ -f "$CLOUD_CONF" ]; then
-			cat "$CLOUD_CONF" >> /home/$UCRM_USER/docker-compose.env
+			cat "$CLOUD_CONF" >> $UCRM_ROOT/docker-compose.env
 		fi
 	else
 		read -r -p "Enter Server domain name for UCRM, for example ucrm.example.com: " SERVER_NAME_LOCAL
-		echo "SERVER_NAME=$SERVER_NAME_LOCAL" >> /home/$UCRM_USER/docker-compose.env
+		echo "SERVER_NAME=$SERVER_NAME_LOCAL" >> $UCRM_ROOT/docker-compose.env
 	fi
 }
 
@@ -231,7 +232,7 @@ change_ucrm_ssl_port() {
 
 		case $PORT in
 			[yY]*)
-				sed -i -e "s/- 8443:443/- 443:443/g" /home/$UCRM_USER/docker-compose.yml
+				sed -i -e "s/- 8443:443/- 443:443/g" $UCRM_ROOT/docker-compose.yml
 				echo "UCRM SSL will start at 443 port."
 				break;;
 			[nN]*)
@@ -245,12 +246,12 @@ change_ucrm_ssl_port() {
 
 download_docker_images() {
 	echo "Downloading docker images."
-	cd /home/$UCRM_USER && /usr/local/bin/docker-compose pull
+	cd $UCRM_ROOT && /usr/local/bin/docker-compose pull
 }
 
 start_docker_images() {
 	echo "Starting docker images."
-	cd /home/$UCRM_USER && \
+	cd $UCRM_ROOT && \
 	/usr/local/bin/docker-compose -f docker-compose.yml -f docker-compose.migrate.yml run migrate_app && \
 	/usr/local/bin/docker-compose up -d && \
 	/usr/local/bin/docker-compose ps
